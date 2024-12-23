@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fetch = require('node-fetch');
 require('dotenv').config();
 
 const app = express();
@@ -56,4 +57,6 @@ app.get('/upload', (req, res) => {
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log('Static files served from:', path.join(__dirname, 'public'));
+    console.log('Environment:', process.env.NODE_ENV);
 });
