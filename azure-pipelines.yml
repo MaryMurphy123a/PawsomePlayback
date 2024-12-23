@@ -5,6 +5,12 @@ trigger:
 - main
 - dev
 
+variables:
+  ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+    webAppName: 'pawsomeplayback'
+  ${{ if eq(variables['Build.SourceBranchName'], 'dev') }}:
+    webAppName: 'pawsomeplayback-dev'
+
 pool:
   vmImage: ubuntu-latest
 
@@ -25,9 +31,11 @@ steps:
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
     replaceExistingArchive: true
+  displayName: 'Archive files'
 
 - task: AzureWebApp@1
   inputs:
     azureSubscription: 'azure-student-connection'
-    appName: 'pawsomeplayback'
+    appName: $(webAppName)
     package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+  displayName: 'Deploy to Azure Web App'
