@@ -1,51 +1,62 @@
 const express = require('express');
-const session = require('express-session');
+const path = require('path');
+const fetch = require('node-fetch');
+require('dotenv').config();
 
 const app = express();
+const PORT = process.env.PORT || 3000; // Use the PORT provided by Azure or default to 3000 for local development
 
-// Configure session middleware
-app.use(session({ secret: 'your_secret_key', resave: false, saveUninitialized: true }));
+// Serve static files from the public directory
+app.use(express.static('public'));
 
-// Middleware to check if user is authenticated
-function isAuthenticated(req, res, next) {
-  if (req.session.user) {
-    return next();
-  }
-  res.redirect('/login');
-}
+// GitHub OAuth configuration
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI || `http://localhost:${PORT}/callback`;
 
-// Route to handle login
-app.get('/login', (req, res) => {
-  res.redirect('/.auth/login/github');
-});
-
-// Route to handle logout
-app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/');
-  });
-});
-
-// Route to handle callback from Azure
-app.get('/.auth/login/github/callback', (req, res) => {
-  // Azure App Service will handle the authentication and redirect back to your app
-  // You can access the authenticated user info from the request headers
-  req.session.user = req.headers['x-ms-client-principal'];
-  res.redirect('/');
-});
-
-// Protected route example
-app.get('/profile', isAuthenticated, (req, res) => {
-  res.send(`Hello, ${req.session.user.userDetails}`);
-});
-
-// Home route
+// Routes
 app.get('/', (req, res) => {
-  res.send(req.session.user ? `Hello, ${req.session.user.userDetails}` : 'Hello, Guest');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
+app.get('/login', (req, res) => {
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}`;
+    res.redirect(githubAuthUrl);
+});
+
+app.get('/callback', async (req, res) => {
+    const code = req.query.code;
+    try {
+        const response = await fetch('https://github.com/login/oauth/access_token', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                client_id: GITHUB_CLIENT_ID,
+                client_secret: GITHUB_CLIENT_SECRET,
+                code: code
+            })
+        });
+
+        const data = await response.json();
+        
+        // Redirect to upload page with token
+        res.redirect(`/upload.html#token=${data.access_token}`);
+    } catch (error) {
+        console.error('Error during GitHub authentication:', error);
+        res.redirect('/?error=authentication_failed');
+    }
+});
+
+app.get('/upload', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'upload.html'));
+});
+
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
+    console.log('Static files served from:', path.join(__dirname, 'public'));
+    console.log('Environment:', process.env.NODE_ENV);
 });
