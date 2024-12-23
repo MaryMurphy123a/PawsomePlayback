@@ -12,7 +12,7 @@ app.use(express.static('public'));
 // GitHub OAuth configuration
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI || `http://localhost:${PORT}/callback`;
+const REDIRECT_URI = 'https://pawsomeplayback.azurewebsites.net/callback';
 
 // Routes
 app.get('/', (req, res) => {
