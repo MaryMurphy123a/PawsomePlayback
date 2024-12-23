@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 // GitHub OAuth configuration
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI || `http://localhost:${PORT}/callback`;
+const REDIRECT_URI = process.env.REDIRECT_URI || `https://pawsomeplayback.azurewebsites.net/callback`;
 
 // Debug route to test server
 app.get('/test', (req, res) => {
