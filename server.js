@@ -16,7 +16,7 @@ app.use(passport.session());
 passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL: "https://yourapp.azurewebsites.net/auth/github/callback"
+    callbackURL: "https://pawsomeplayback.azurewebsites.net/callback"
   },
   function(accessToken, refreshToken, profile, cb) {
     // Save user profile or handle authentication logic here
